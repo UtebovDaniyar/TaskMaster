@@ -5,7 +5,9 @@ import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { DottedSeparator } from "@/components/dotted-separator";
 import { Button } from "@/components/ui/button";
@@ -34,7 +36,16 @@ import { registerSchema } from "../schemas";
 import { useRegister } from "../api/use-register";
 
 export const SignUpCard = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { mutate: register, isPending, isSuccess, error } = useRegister();
+
+  // Редирект аутентифицированных пользователей
+  useEffect(() => {
+    if (session?.user && status === "authenticated") {
+      router.push("/");
+    }
+  }, [session, status, router]);
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),

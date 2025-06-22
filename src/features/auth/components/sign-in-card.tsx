@@ -5,7 +5,9 @@ import Link from "next/link";
 import { FcGoogle } from "react-icons/fc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 import { DottedSeparator } from "@/components/dotted-separator";
 import { Button } from "@/components/ui/button";
@@ -32,7 +34,16 @@ import { loginSchema } from "../schemas";
 import { useLogin } from "../api/use-login";
 
 export const SignInCard = () => {
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const { mutate: login, isPending, isSuccess, error } = useLogin();
+
+  // Редирект аутентифицированных пользователей
+  useEffect(() => {
+    if (session?.user && status === "authenticated") {
+      router.push("/");
+    }
+  }, [session, status, router]);
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
